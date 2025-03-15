@@ -19,14 +19,33 @@ A Python script that automatically updates an AWS Route 53 DNS record with the c
 ## Installation
 
 1. Clone this repository:
-   ```
+   ```bash
    git clone https://github.com/seawhite/aws-r53-ip-updater.git
    cd aws-r53-ip-updater
    ```
 
-2. Install the required dependencies:
+2. Set up a Python virtual environment (recommended):
+   ```bash
+   # Create a virtual environment
+   python3 -m venv venv
+   
+   # Activate the virtual environment
+   # On Linux/macOS:
+   source venv/bin/activate
+   # On Windows:
+   # venv\Scripts\activate
+   
+   # Your terminal prompt should now show (venv) indicating the virtual environment is active
    ```
+
+3. Install the required dependencies in the virtual environment:
+   ```bash
    pip install -r requirements.txt
+   ```
+
+4. When you're done using the virtual environment, you can deactivate it:
+   ```bash
+   deactivate
    ```
 
 ## Usage
@@ -72,15 +91,22 @@ You can set up a cron job to run this script periodically. Here's how to do it:
 
 2. Add a line to run the script at your desired frequency. Some examples:
 
+   #### Using a virtual environment with cron (recommended):
+   ```bash
+   # Run every hour (at minute 0)
+   0 * * * * cd /path/to/aws-r53-ip-updater && /path/to/aws-r53-ip-updater/venv/bin/python /path/to/aws-r53-ip-updater/update_route53_ip.py --zone-id YOUR_ZONE_ID --record-name your.domain.com
+   
+   # Run every 15 minutes
+   */15 * * * * cd /path/to/aws-r53-ip-updater && /path/to/aws-r53-ip-updater/venv/bin/python /path/to/aws-r53-ip-updater/update_route53_ip.py --zone-id YOUR_ZONE_ID --record-name your.domain.com
+   
+   # Run daily at 6 AM
+   0 6 * * * cd /path/to/aws-r53-ip-updater && /path/to/aws-r53-ip-updater/venv/bin/python /path/to/aws-r53-ip-updater/update_route53_ip.py --zone-id YOUR_ZONE_ID --record-name your.domain.com
+   ```
+   
+   #### Using system Python (alternative):
    ```bash
    # Run every hour (at minute 0)
    0 * * * * cd /path/to/aws-r53-ip-updater && /usr/bin/python3 /path/to/aws-r53-ip-updater/update_route53_ip.py --zone-id YOUR_ZONE_ID --record-name your.domain.com
-   
-   # Run every 15 minutes
-   */15 * * * * cd /path/to/aws-r53-ip-updater && /usr/bin/python3 /path/to/aws-r53-ip-updater/update_route53_ip.py --zone-id YOUR_ZONE_ID --record-name your.domain.com
-   
-   # Run daily at 6 AM
-   0 6 * * * cd /path/to/aws-r53-ip-updater && /usr/bin/python3 /path/to/aws-r53-ip-updater/update_route53_ip.py --zone-id YOUR_ZONE_ID --record-name your.domain.com
    ```
 
 3. Save and exit the editor.
@@ -99,6 +125,26 @@ To log the output of your cron job for debugging purposes:
 Alternatively, you can set up a systemd service with a timer:
 
 1. Create a service file at `/etc/systemd/system/route53-updater.service`:
+
+   #### Using a virtual environment (recommended):
+   ```ini
+   [Unit]
+   Description=Update Route 53 DNS record with current public IP
+   After=network-online.target
+   Wants=network-online.target
+   
+   [Service]
+   Type=oneshot
+   ExecStart=/path/to/aws-r53-ip-updater/venv/bin/python /path/to/aws-r53-ip-updater/update_route53_ip.py --zone-id YOUR_ZONE_ID --record-name your.domain.com
+   WorkingDirectory=/path/to/aws-r53-ip-updater
+   User=your_username
+   Environment="PATH=/path/to/aws-r53-ip-updater/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+   
+   [Install]
+   WantedBy=multi-user.target
+   ```
+   
+   #### Using system Python (alternative):
    ```ini
    [Unit]
    Description=Update Route 53 DNS record with current public IP
